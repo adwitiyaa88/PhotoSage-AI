@@ -1,3 +1,4 @@
+from ui.photo_viewer import PhotoViewer
 from PySide6.QtWidgets import (
     QWidget,
     QLabel,
@@ -18,7 +19,7 @@ from services.apple_photos import find_library, get_original_photos
 class Dashboard(QWidget):
     def __init__(self):
         super().__init__()
-
+        self.viewers = []
         layout = QVBoxLayout()
 
         title = QLabel("📷 Welcome to PhotoSage AI")
@@ -90,6 +91,11 @@ class Dashboard(QWidget):
             for photo in photos[:10]:
                 print(photo.name)
     
+    def open_photo(self, image_path):
+        viewer = PhotoViewer(image_path)
+        viewer.show()
+        self.viewers.append(viewer)
+
     def connect_apple_photos(self):
         library = find_library()
 
@@ -111,9 +117,8 @@ class Dashboard(QWidget):
         col = 0
 
         for photo in photos[:20]:
-            label = QLabel()
-            label.setFixedSize(150, 150)
-            label.setAlignment(Qt.AlignCenter)
+            button = QPushButton()
+            button.setFixedSize(150, 150)
 
             pixmap = QPixmap(str(photo))
             print(photo)
@@ -127,9 +132,14 @@ class Dashboard(QWidget):
                     Qt.SmoothTransformation,
                 )
 
-                label.setPixmap(pixmap)
+                button.setIcon(pixmap)
+                button.setIconSize(pixmap.size())
 
-            self.grid.addWidget(label, row, col)
+            button.clicked.connect(
+                lambda _checked=False, path=str(photo): self.open_photo(path)
+            )
+
+            self.grid.addWidget(button, row, col)
             print(f"Added thumbnail at Row={row}, Col={col}")
             col += 1
 
