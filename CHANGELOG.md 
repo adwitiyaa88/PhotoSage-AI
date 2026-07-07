@@ -1,0 +1,24 @@
+# Changelog
+
+## v0.6.1 (In Progress)
+
+### Added
+- Photo filename in title bar
+- Responsive image resizing
+- Dark photo viewer
+
+---
+
+## v0.6.0
+
+### Added
+- Interactive photo viewer
+- Clickable thumbnails
+
+---
+
+## v0.5.0
+
+### Added
+- Apple Photos integration
+- Thumbnail gallery
