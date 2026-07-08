@@ -91,8 +91,8 @@ class Dashboard(QWidget):
             for photo in photos[:10]:
                 print(photo.name)
     
-    def open_photo(self, image_path):
-        viewer = PhotoViewer(image_path)
+    def open_photo(self, index):
+        viewer = PhotoViewer(self.photos, index)
         viewer.show()
         self.viewers.append(viewer)
 
@@ -104,6 +104,7 @@ class Dashboard(QWidget):
             return
 
         photos = get_original_photos()
+        self.photos = photos
 
         print(f"Found {len(photos)} photos.")
 
@@ -115,8 +116,7 @@ class Dashboard(QWidget):
         # Show first 20 thumbnails
         row = 0
         col = 0
-
-        for photo in photos[:20]:
+        for index, photo in enumerate(photos[:20]):
             button = QPushButton()
             button.setFixedSize(150, 150)
 
@@ -136,7 +136,7 @@ class Dashboard(QWidget):
                 button.setIconSize(pixmap.size())
 
             button.clicked.connect(
-                lambda _checked=False, path=str(photo): self.open_photo(path)
+                lambda _checked=False, idx=index: self.open_photo(idx)
             )
 
             self.grid.addWidget(button, row, col)
