@@ -27,9 +27,11 @@ QLabel {
         self.photos = photos
         self.current_index = current_index
 
+        self.zoom_factor = 1.0
+        self.fit_to_window = True
         self.load_photo()
+        
 
-        self.update_image()
 
         layout.addWidget(self.image)
 
@@ -47,11 +49,22 @@ QLabel {
         if self.pixmap.isNull():
             return
 
-        scaled = self.pixmap.scaled(
-            self.image.size(),
-            Qt.KeepAspectRatio,
-            Qt.SmoothTransformation,
-        )
+        if self.fit_to_window:
+            scaled = self.pixmap.scaled(
+                self.image.size(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            )
+        else:
+            width = int(self.pixmap.width() * self.zoom_factor)
+            height = int(self.pixmap.height() * self.zoom_factor)
+
+            scaled = self.pixmap.scaled(
+                width,
+                height,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            )
 
         self.image.setPixmap(scaled)
 
@@ -73,3 +86,16 @@ QLabel {
             self.close()
         else:
             super().keyPressEvent(event)
+
+    def wheelEvent(self, event):
+        print(event.angleDelta().y())
+        if event.angleDelta().y() > 0:
+            self.zoom_factor *= 1.15
+        else:
+            self.zoom_factor /= 1.15
+
+        # Limit zoom between 20% and 500%
+        self.zoom_factor = max(0.2, min(self.zoom_factor, 5.0))
+
+        self.fit_to_window = False
+        self.update_image()
