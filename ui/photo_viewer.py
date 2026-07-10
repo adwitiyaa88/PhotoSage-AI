@@ -1,8 +1,14 @@
 from pathlib import Path
-from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
-from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
+from ui.photo_graphics_view import PhotoGraphicsView
 
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QGraphicsScene,
+    QGraphicsPixmapItem,
+)
 
 class PhotoViewer(QWidget):
     def __init__(self, photos, current_index):
@@ -15,25 +21,24 @@ QWidget {
     background-color: #1b1b1b;
 }
 
-QLabel {
-    background-color: #1b1b1b;
-}
 """)
         layout = QVBoxLayout()
 
-        self.image = QLabel()
-        self.image.setAlignment(Qt.AlignCenter)
+        self.scene = QGraphicsScene()
+
+        self.view = PhotoGraphicsView(self.scene)
+        
+        self.photo_item = QGraphicsPixmapItem()
+
+        self.scene.addItem(self.photo_item)
+
+        layout.addWidget(self.view)
 
         self.photos = photos
         self.current_index = current_index
 
-        self.zoom_factor = 1.0
-        self.fit_to_window = True
         self.load_photo()
         
-
-
-        layout.addWidget(self.image)
 
         self.setLayout(layout)
         self.setFocusPolicy(Qt.StrongFocus)
@@ -49,24 +54,10 @@ QLabel {
         if self.pixmap.isNull():
             return
 
-        if self.fit_to_window:
-            scaled = self.pixmap.scaled(
-                self.image.size(),
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
-            )
-        else:
-            width = int(self.pixmap.width() * self.zoom_factor)
-            height = int(self.pixmap.height() * self.zoom_factor)
+        self.photo_item.setPixmap(self.pixmap)
 
-            scaled = self.pixmap.scaled(
-                width,
-                height,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation,
-            )
-
-        self.image.setPixmap(scaled)
+        # adjust view to fit the new image
+        self.fit_image()
 
     def resizeEvent(self, event):
         self.update_image()
@@ -87,15 +78,11 @@ QLabel {
         else:
             super().keyPressEvent(event)
 
-    def wheelEvent(self, event):
-        print(event.angleDelta().y())
-        if event.angleDelta().y() > 0:
-            self.zoom_factor *= 1.15
-        else:
-            self.zoom_factor /= 1.15
+    def fit_image(self):
+        self.view.resetTransform()
+        self.view.zoom = 0
 
-        # Limit zoom between 20% and 500%
-        self.zoom_factor = max(0.2, min(self.zoom_factor, 5.0))
-
-        self.fit_to_window = False
-        self.update_image()
+        self.view.fitInView(
+            self.photo_item,
+            Qt.KeepAspectRatio,
+        )
