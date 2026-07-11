@@ -23,4 +23,4 @@ PhotoSage AI is a desktop application that helps users organize, clean, and mana
 - Python
 - PySide6
 - Pillow
-- Google Photos API
+- Google Photos API# PhotoSage-AI
