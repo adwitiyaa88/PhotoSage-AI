@@ -1,13 +1,15 @@
 from PySide6.QtWidgets import QGraphicsView
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter
+from PySide6.QtCore import QEvent
 
 class PhotoGraphicsView(QGraphicsView):
 
     def __init__(self, scene):
         super().__init__(scene)
 
-        self.zoom = 0
+        self.min_scale = 0.2
+        self.max_scale = 5.0
 
         self.setTransformationAnchor(
             QGraphicsView.AnchorUnderMouse
@@ -16,7 +18,9 @@ class PhotoGraphicsView(QGraphicsView):
         self.setResizeAnchor(
             QGraphicsView.AnchorViewCenter
         )
-
+        self.setAlignment(
+            Qt.AlignCenter
+        )
         self.setDragMode(
             QGraphicsView.ScrollHandDrag
         )
@@ -33,23 +37,33 @@ class PhotoGraphicsView(QGraphicsView):
             QPainter.Antialiasing |
             QPainter.SmoothPixmapTransform
         )
-    def wheelEvent(self, event):
-
-        if event.angleDelta().y() > 0:
-            factor = 1.25
-            self.zoom += 1
-        else:
-            factor = 0.8
-            self.zoom -= 1
-
-        if -10 <= self.zoom <= 20:
-            self.scale(factor, factor)
-
-        elif self.zoom < -10:
-            self.zoom = -10
-
-        else:
-            self.zoom = 20
+        self.viewport().installEventFilter(self)
 
     def mouseDoubleClickEvent(self, event):
         self.parent().fit_image()
+        super().mouseDoubleClickEvent(event)
+
+    def eventFilter(self, obj, event):
+        if obj == self.viewport() and event.type() == QEvent.Wheel:
+            print(
+                "Angle:", event.angleDelta(),
+                "Pixel:", event.pixelDelta()
+            )
+
+            delta = event.angleDelta().y()
+
+            if delta == 0:
+                return True
+
+            factor = 1 + (delta / 1200.0)
+
+            current_scale = self.transform().m11()
+            new_scale = current_scale * factor
+
+            if self.min_scale <= new_scale <= self.max_scale:
+                self.scale(factor, factor)
+
+            event.accept()
+            return True
+
+        return super().eventFilter(obj, event)

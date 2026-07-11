@@ -35,6 +35,7 @@ QWidget {
         layout.addWidget(self.view)
 
         self.photos = photos
+
         self.current_index = current_index
 
         self.load_photo()
@@ -47,8 +48,16 @@ QWidget {
     def load_photo(self):
         image_path = self.photos[self.current_index]
         self.setWindowTitle(Path(image_path).name)
+
         self.pixmap = QPixmap(str(image_path))
-        self.update_image()
+
+        self.photo_item.setPixmap(self.pixmap)
+
+        self.scene.setSceneRect(
+            self.photo_item.boundingRect()
+        )
+
+        self.fit_image()
 
     def update_image(self):
         if self.pixmap.isNull():
@@ -80,7 +89,6 @@ QWidget {
 
     def fit_image(self):
         self.view.resetTransform()
-        self.view.zoom = 0
 
         self.view.fitInView(
             self.photo_item,
