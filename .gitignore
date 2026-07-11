@@ -13,6 +13,7 @@ __pycache__/
 
 # Credentials
 credentials/token.json
+credentials/client_secret.json
 
 # Logs
 *.log
